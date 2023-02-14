@@ -14,6 +14,8 @@ public class User {
     public boolean member;
     public boolean staff;
 
+    //Course Info
+
 
     public User(String firstName, String lastName, String email, int phone, String username, String password){
         UpdateUser(firstName, lastName, email, phone, username, password);
@@ -38,6 +40,8 @@ public class User {
         }
     }
 
-
+    public void AddCourse(){
+        //Add to linked list here
+    }
 
 }

@@ -1,5 +1,3 @@
-package CS341_Project;
-
 public class Admin {
 
     // Account Details
