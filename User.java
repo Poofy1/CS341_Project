@@ -12,10 +12,6 @@ public class User {
 
     // Privalages
     public boolean member;
-    public boolean staff;
-
-    //Course Info
-
 
     public User(String firstName, String lastName, String email, int phone, String username, String password){
         UpdateUser(firstName, lastName, email, phone, username, password);
@@ -30,18 +26,12 @@ public class User {
         this.password = password;
     }
 
-    public void UpdateStaff(boolean input){
-        if(input){
-            member = true;
-            staff = true;
-        }
-        else{
-            staff = false;
-        }
-    }
 
-    public void AddCourse(){
-        //Add to linked list here
+    // Add course to schedual 
+    public void AddCourse(CourseNode course){
+        UserNode user = new UserNode(this);
+
+        course.participants.AddNode(user);
     }
 
 }
