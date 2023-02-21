@@ -26,7 +26,7 @@ class CourseNode {
     
     // Course Data
     public String name;
-    public int timeID; // Possible format: Hour/Day/Moth/Year {12}{02}{10}{2023}
+    public String timeID; // Possible format: Hour/Day/Moth/Year {12}{02}{10}{2023}
     public int cost;
     public String instructor;
 
@@ -35,7 +35,7 @@ class CourseNode {
     public UserList participants;
 
 
-    public CourseNode(String name, int timeID, String instructor){
+    public CourseNode(String name, String timeID, String instructor){
         this.name = name;
         this.timeID = timeID;
         this.instructor = instructor;
