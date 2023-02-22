@@ -18,6 +18,7 @@ public class User {
 
     public User(String firstName, String lastName, String email, String phone, String username, String password){
         UpdateUser(firstName, lastName, email, phone, username, password);
+        this.schedule = new UserSchedule();
     }
 
     public void UpdateUser(String firstName, String lastName, String email, String phone, String username, String password){
@@ -31,51 +32,83 @@ public class User {
 
     // Add course to schedual 
     // returns False if time conflict
-    public boolean AddParticipant(CourseNode course, CourseList courses) {
-        // Check for time conflicts
-        TimeSlot current = schedule.head;
+    public boolean AddParticipant(String name, CourseList courses) {
+        // Find the course's node in the course list
+        CourseNode current = courses.head;
         while (current != null) {
-            if (current.timeID.equals(course.timeID)) {
-                // Time conflict found, return false
-                return false;
+            if (current.name.equals(name)) {
+                // Course found, add to schedual???
+                TimeSlot currentTime = schedule.head;
+                if (currentTime == null){
+                    schedule.head = new TimeSlot(current.timeID);
+                }
+                else{
+                    while (true) {
+                        if (currentTime.timeID.equals(current.timeID)) {
+                            // Time dup found, cancel everything
+                            return false;
+                        }
+    
+                        if (currentTime.next == null) {
+                            // Time not found, create time, continue
+                            currentTime.next = new TimeSlot(current.timeID);
+                            break;
+                        }
+    
+                        currentTime = currentTime.next;
+                    }
+                }
+
+                current.participants++;
+                return true;
             }
 
-            // Add to schedule at end of list
-            if (current.next == null){
-                current.next = new TimeSlot(course.timeID);
-                break;
-            }
             current = current.next;
         }
-    
-        // No time conflict, add user to the course's participants list
-        UserNode user = new UserNode(this);
-        course.participants.AddNode(user);
-        return true;
+
+        //Nothing found
+        return false;
     }
 
     // Remove course from schedual 
     // returns false if user is not found
-    public boolean DeleteParticipant(CourseNode course) {
-        // Find the user's node in the course's participants list
-        UserNode current = course.participants.head;
-        UserNode prev = null;
+    public boolean DeleteParticipant(String name, CourseList courses) {
+        // Find the course's node in the course list
+        CourseNode current = courses.head;
         while (current != null) {
-            if (current.user == this) {
-                // User found, remove the node from the participants list
-                if (prev == null) {
-                    // Node is the head of the list
-                    course.participants.head = current.next;
-                } else {
-                    prev.next = current.next;
+            if (current.name.equals(name)) {
+
+                // Course found, delete from schedule
+                TimeSlot currentTime = schedule.head;
+                TimeSlot prevTime = null;
+                while (true) {
+                    if (currentTime.timeID.equals(current.timeID)) {
+                        // Time found, delete from schedule
+                        if (prevTime == null) {
+                            // Node is the head of the list
+                            schedule.head = currentTime.next;
+                        } else {
+                            prevTime.next = currentTime.next;
+                        }
+                        break;
+                    }
+
+                    if (currentTime.next == null) {
+                        // Time not found, return false
+                        return false;
+                    }
+
+                    prevTime = currentTime;
+                    currentTime = currentTime.next;
                 }
+
+                current.participants--;
                 return true;
             }
-            prev = current;
             current = current.next;
         }
-    
-        // User not found in the participants list
+
+        // Course not found in the list
         return false;
     }
 }
@@ -103,40 +136,100 @@ class Staff {
 
     // Migrate user to staff (Delete user account after migration)
     public Staff(User user){
-        this.firstName = user.firstName;
-        this.lastName = user.lastName;
-        this.email = user.email;
-        this.phone = user.phone;
-        this.username = user.username;
-        this.password = user.password;
+        UpdateStaff(firstName, lastName, email, phone, username, password);
+        this.schedule = new UserSchedule();
+    }
+
+    public void UpdateStaff(String firstName, String lastName, String email, String phone, String username, String password){
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phone = phone;
+        this.username = username;
+        this.password = password;
     }
 
 
     // Create a new course
-    // returns False if time conflict
-    public boolean CreateCourse(CourseNode newCourse, CourseList courses){
+    // returns null if time conflict
+    public CourseNode CreateCourse(String name, String timeID, CourseList courses){
         // Check for time conflicts
-        CourseNode current = courses.head;
-        while (current != null) {
-            if (current.timeID.equals(newCourse.timeID)) {
-                // Time conflict found, return false
-                return false;
-            }
-            current = current.next;
-        }
+        TimeSlot currentTime = schedule.head;
 
-        // No time conflict, add course to instructor schedule 
-        courses.AddNode(newCourse);
-        return true;
+        //Create TimeSlot
+        if (currentTime == null){
+            schedule.head = new TimeSlot(timeID);
+        }
+        else{
+            while (true) {
+                if (currentTime.next == null){
+                    // No time conflict, add course list and to instructor schedule 
+                    currentTime.next = new TimeSlot(timeID);
+                    break;
+                }
+    
+                if (currentTime.timeID.equals(timeID)) {
+                    // Time conflict found, return null
+                    return null;
+                }
+    
+                currentTime = currentTime.next;
+            }
+        }
+        
+        // Create Course
+        CourseNode newCourse = new CourseNode(name, timeID, this.lastName);
+        CourseNode current = courses.head;
+        if(current == null){
+            courses.head = newCourse;
+        }
+        else{
+            while (true) {
+                if(current.next == null){
+                    current.next = newCourse;
+                    break;
+                }
+                current = current.next;
+            }
+        }
+        
+        return newCourse;
     }
 
     // Delete a course
-    public boolean DeleteCourse(CourseNode course, CourseList courses) {
+    // returns true if deleted sucessfully 
+    // Staff can only delete courses under their name!!!
+    public boolean DeleteCourse(String name, CourseList courses) {
         // Find the course's node in the course list
         CourseNode current = courses.head;
         CourseNode prev = null;
         while (current != null) {
-            if (current == course) {
+            if (current.name.equals(name)) {
+
+                // Course found, delete from instructor schedule
+                TimeSlot currentTime = schedule.head;
+                TimeSlot prevTime = null;
+                while (true) {
+                    if (currentTime.timeID.equals(current.timeID)) {
+                        // Time found, delete from instructor schedule
+                        if (prevTime == null) {
+                            // Node is the head of the list
+                            schedule.head = currentTime.next;
+                        } else {
+                            prevTime.next = currentTime.next;
+                        }
+                        break;
+                    }
+
+                    if (currentTime.next == null) {
+                        // Time not found, return false
+                        return false;
+                    }
+
+                    prevTime = currentTime;
+                    currentTime = currentTime.next;
+                }
+
                 // Course found, remove the node from the list
                 if (prev == null) {
                     // Node is the head of the list
@@ -149,8 +242,9 @@ class Staff {
             prev = current;
             current = current.next;
         }
-    
+
         // Course not found in the list
         return false;
     }
+
 }
