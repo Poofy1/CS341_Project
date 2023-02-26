@@ -1,3 +1,4 @@
+package CS341_Project;
 import java.util.ArrayList;
 
 public class Staff {

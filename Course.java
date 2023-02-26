@@ -1,3 +1,4 @@
+package CS341_Project;
 
 public class Course {
 	String name;
