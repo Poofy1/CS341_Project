@@ -1,83 +1,50 @@
-package CS341_Project;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Scanner;
+
+
+import java.io.*;
+import java.util.*;
 
 public class StaffList {
-	Staff head;
-	Staff current;
-	public StaffList() {
-		try {
-			add("admin", 0000000000, "admin", "password", true);
-			File file = new File("StaffList.txt");
-			if(file.exists()) {
-				Scanner scan = new Scanner(file);
-				while(scan.hasNext()) {
-					String n = scan.next();
-					int pn = scan.nextInt();
-					String u = scan.next();
-					String p = scan.next();
-					add(n, pn, u, p, false);
-				}
-				scan.close();
-			}
-		}catch(IOException e) {
-			System.out.println(e.getMessage());
-		}
-	}
-	
-	public void add(String n, int pn, String u, String p, boolean a) {
-		if(head == null) {
-			head = new Staff(n, pn, u, p, a, null);
-		}else {
-			head = new Staff(n, pn, u, p, a, head);
-		}
-	}
-	
-	public void search(String n) {
-		Staff temp = head;
-		if(temp.name.equals(n)) {
-			current = temp; 
-			return;
-		}
-		temp = temp.next;
-		while(temp != null) {
-			if(temp.name.equals(n)) {
-				current = temp; 
-				return;
-			}
-			temp = temp.next;
-		}
-	}
-	
-	public void modify(String n, int pn, String u, String p) {
-		current.modify(n, pn, u, p);
-	}
-	
-	public void deactivate() {
-		if(!current.admin) current.deactivate();
-	}
-	
-	public void teachClass(Course p) {
-		current.teachClass(p);
-	}
-	
-	public void close() {
-		try {
-			File file = new File("ProgramList.txt");
-			if(file.exists()) file.delete();
-			BufferedWriter write = new BufferedWriter(new PrintWriter(file));
-			Staff temp = head.next; //Skips admin
-			
-			while(temp != null) {
-				write.write(temp.name + " "  + temp.phoneNumber + " " + temp.username + " " + temp.password + " ");
-				temp = temp.next;
-			}
-			write.close();
-		}catch(IOException e) {
-			System.out.println(e.getMessage());
-		}
-	}
+    private static List<Staff> staffList;
+    private static String filename;
+
+    public StaffList(String filename) {
+        StaffList.filename = filename;
+        staffList = new ArrayList<>();
+    }
+
+    // method to add a staff to the list
+
+    public void addStaff(Staff staff) throws IOException, ClassNotFoundException {
+        staffList.add(staff);
+        saveToFile();
+    }
+
+    // method to retrieve a staff by email
+
+    public Staff getStaffByEmail(String email) throws IOException, ClassNotFoundException {
+        loadFromFile();
+        for (Staff staff : staffList) {
+            if (staff.getEmail().equals(email)) {
+                return staff;
+            }
+        }
+        return null;
+    }
+
+    // method to save the list of staff to a file
+
+    private static void saveToFile() throws IOException {
+        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filename));
+        oos.writeObject(staffList);
+        oos.close();
+    }
+
+    // method to load the list of staff from a file
+
+    @SuppressWarnings("unchecked")
+    private void loadFromFile() throws IOException, ClassNotFoundException {
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename));
+        staffList = (List<Staff>) ois.readObject();
+        ois.close();
+    }
 }
