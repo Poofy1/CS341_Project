@@ -131,8 +131,6 @@ class UserLoginUI extends JFrame implements ActionListener{
 
             dispose();
 
-
-
             // TODO: validate email and password
             // and check if they match a user in the database
             // if successful, open the user's dashboard
